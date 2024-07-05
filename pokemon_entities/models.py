@@ -5,6 +5,7 @@ from django.utils import timezone
 class Pokemon(models.Model):
     title = models.TextField()
     image = models.ImageField(null=True, blank=True)
+    description = models.TextField()
 
     def __str__(self):
         return self.title
