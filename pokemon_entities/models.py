@@ -4,6 +4,8 @@ from django.utils import timezone
 
 class Pokemon(models.Model):
     title = models.TextField()
+    title_en = models.TextField()
+    title_jp = models.TextField()
     image = models.ImageField(null=True, blank=True)
     description = models.TextField()
 
