@@ -3,23 +3,23 @@ from django.utils import timezone
 
 
 class Pokemon(models.Model):
-    title = models.TextField()
-    title_en = models.TextField()
-    title_jp = models.TextField()
-    image = models.ImageField(null=True, blank=True)
-    description = models.TextField()
-    evolved_from = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='previous_evolutions')
-    evolved_to = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='next_evolutions')
+    title = models.TextField(verbose_name='Название покемона')
+    title_en = models.TextField(verbose_name='Английское название покемона')
+    title_jp = models.TextField(verbose_name='Японское название покемона')
+    image = models.ImageField(null=True, blank=True, verbose_name='Изображение покемона')
+    description = models.TextField(verbose_name='Описание покемона')
+    evolved_from = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='previous_evolutions', verbose_name='Из кого эволюционирует')
+    evolved_to = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='next_evolutions', verbose_name='В кого эволюционирует')
 
     def __str__(self):
         return self.title
 
 
 class PokemonEntity(models.Model):
-    title = models.ForeignKey(Pokemon, on_delete=models.CASCADE)
+    title = models.ForeignKey(Pokemon, on_delete=models.CASCADE, verbose_name='Название покемона')
 
-    lat = models.FloatField()
-    lon = models.FloatField()
+    lat = models.FloatField(verbose_name='Широта')
+    lon = models.FloatField(verbose_name='Долгота')
 
     appeared_at = models.DateTimeField(default=timezone.now, verbose_name='Время появления')
     disappeared_at = models.DateTimeField(default=timezone.now, verbose_name="Время исчезновения")
