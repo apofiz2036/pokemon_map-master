@@ -2,7 +2,7 @@
 import folium
 
 from django.http import HttpResponseNotFound
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.utils import timezone
 
 from .models import Pokemon, PokemonEntity
@@ -31,7 +31,10 @@ def add_pokemon(folium_map, lat, lon, image_url=DEFAULT_IMAGE_URL):
 
 def show_all_pokemons(request):
     pokemons = Pokemon.objects.all()
-    pokemon_enties = PokemonEntity.objects.all()
+    pokemon_enties = PokemonEntity.objects.filter(
+        appeared_at__lte=timezone.now(),
+        disappeared_at__gte=timezone.now()
+    )
 
     folium_map = folium.Map(location=MOSCOW_CENTER, zoom_start=12)
 
@@ -41,23 +44,21 @@ def show_all_pokemons(request):
             pokemons_on_page.append({
                 'pokemon_id': pokemon.id,
                 'img_url': pokemon.image.url,
-                'title': pokemon.title
+                'pokemon_name': pokemon.pokemon_name
             })
         except ValueError:
             continue
 
     for pokemon_entity in pokemon_enties:
-        pokemon = pokemon_entity.title
-        if (pokemon_entity.appeared_at <= timezone.now()) and (pokemon_entity.disappeared_at >= timezone.now()):
-            try:
-                add_pokemon(
-                    folium_map,
-                    pokemon_entity.lat,
-                    pokemon_entity.lon,
-                    request.build_absolute_uri(pokemon_entity.title.image.url)
-                )
-            except ValueError:
-                continue
+        try:
+            add_pokemon(
+                folium_map,
+                pokemon_entity.lat,
+                pokemon_entity.lon,
+                request.build_absolute_uri(pokemon_entity.pokemon_name.image.url)
+            )
+        except ValueError:
+            continue
 
     return render(request, 'mainpage.html', context={
         'map': folium_map._repr_html_(),
@@ -66,9 +67,9 @@ def show_all_pokemons(request):
 
 
 def show_pokemon(request, pokemon_id):
-    pokemon = Pokemon.objects.get(id=pokemon_id)
+    pokemon = get_object_or_404(Pokemon, id=pokemon_id)
 
-    pokemon_entities = PokemonEntity.objects.filter(title=pokemon)
+    pokemon_entities = PokemonEntity.objects.filter(pokemon_name=pokemon)
     folium_map = folium.Map(location=MOSCOW_CENTER, zoom_start=12)
 
     for pokemon_entity in pokemon_entities:
@@ -79,26 +80,30 @@ def show_pokemon(request, pokemon_id):
             request.build_absolute_uri(pokemon.image.url)
         )
 
+    previous_evolutions = pokemon.evolutions.filter(id__lt=pokemon.id).order_by('-id')
+    next_evolutions = pokemon.evolutions.filter(id__gt=pokemon.id).order_by('id')
+
     previous_evolution = None
-    if pokemon.evolved_from:
+    if previous_evolutions:
         previous_evolution = {
-            'title_ru': pokemon.evolved_from.title,
-            'pokemon_id': pokemon.evolved_from.id,
-            'img_url': request.build_absolute_uri(pokemon.evolved_from.image.url) 
+            'pokemon_name_ru': previous_evolutions.first().pokemon_name,
+            'pokemon_id': previous_evolutions.first().id,
+            'img_url:': request.build_absolute_uri(previous_evolutions.first().image.url)
         }
 
     next_evolution = None
-    if pokemon.evolved_to:
+    if next_evolutions:
         next_evolution = {
-            'title_ru': pokemon.evolved_to.title,
-            'pokemon_id': pokemon.evolved_to.id,
-            'img_url': request.build_absolute_uri(pokemon.evolved_to.image.url) 
+            'pokemon_name_ru': next_evolutions.first().pokemon_name,
+            'pokemon_id': next_evolutions.first().id,
+            'img_url': request.build_absolute_uri(next_evolutions.first().image.url)
         }
+
     pokemon_info = {
         'img_url': request.build_absolute_uri(pokemon.image.url),
-        'title_ru': pokemon.title,
-        'title_en': pokemon.title_en,
-        'title_jp': pokemon.title_jp,
+        'pokemon_name_ru': pokemon.pokemon_name,
+        'pokemon_name_en': pokemon.pokemon_name_en,
+        'pokemon_name_jp': pokemon.pokemon_name_jp,
         'description': pokemon.description,
         'previous_evolution': previous_evolution,
         'next_evolution': next_evolution

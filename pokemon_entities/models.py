@@ -3,15 +3,15 @@ from django.utils import timezone
 
 
 class Pokemon(models.Model):
-    title = models.TextField(
+    pokemon_name = models.TextField(
         verbose_name='Название покемона'
     )
-    title_en = models.TextField(
+    pokemon_name_en = models.TextField(
         verbose_name='Английское название покемона',
         null=True,
         blank=True
     )
-    title_jp = models.TextField(
+    pokemon_name_jp = models.TextField(
         verbose_name='Японское название покемона',
         null=True,
         blank=True
@@ -26,29 +26,22 @@ class Pokemon(models.Model):
         null=True,
         blank=True
     )
-    evolved_from = models.ForeignKey(
+    evolution = models.ForeignKey(
         'self',
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='previous_evolutions',
-        verbose_name='Из кого эволюционирует'
-    )
-    evolved_to = models.ForeignKey(
-        'self',
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='next_evolutions',
-        verbose_name='В кого эволюционирует'
+        related_name='evolutions',
+        verbose_name='Эволюция'
+
     )
 
     def __str__(self):
-        return self.title
+        return self.pokemon_name
 
 
 class PokemonEntity(models.Model):
-    title = models.ForeignKey(
+    pokemon_name = models.ForeignKey(
         Pokemon,
         on_delete=models.CASCADE,
         verbose_name='Название покемона'
@@ -58,16 +51,20 @@ class PokemonEntity(models.Model):
     lon = models.FloatField(verbose_name='Долгота')
 
     appeared_at = models.DateTimeField(
-        default=timezone.now,
+        default=None,
+        null=True,
+        blank=True,
         verbose_name='Время появления'
     )
     disappeared_at = models.DateTimeField(
-        default=timezone.now,
+        default=None,
+        null=True,
+        blank=True,
         verbose_name="Время исчезновения"
     )
 
-    level = models.IntegerField(default=1, verbose_name="Уровень")
-    health = models.IntegerField(default=1, verbose_name="Здоровье")
-    strength = models.IntegerField(default=1, verbose_name="Атака")
-    defence = models.IntegerField(default=1, verbose_name="Защита")
-    stamina = models.IntegerField(default=1, verbose_name="Выносливость")
+    level = models.IntegerField(default=0, verbose_name="Уровень")
+    health = models.IntegerField(default=0, verbose_name="Здоровье")
+    strength = models.IntegerField(default=0, verbose_name="Атака")
+    defence = models.IntegerField(default=0, verbose_name="Защита")
+    stamina = models.IntegerField(default=0, verbose_name="Выносливость")
