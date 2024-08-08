@@ -84,7 +84,6 @@ def show_pokemon(request, pokemon_id):
         )
 
     previous_evolutions = pokemon.prev_evolution
-    # next_evolutions = pokemon.next_evolutions.all().order_by('id')
     next_evolutions = pokemon.next_evolutions.first()
 
     previous_evolution = None
