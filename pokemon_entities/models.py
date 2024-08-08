@@ -43,7 +43,7 @@ class Pokemon(models.Model):
 
 
 class PokemonEntity(models.Model):
-    name_ru = models.ForeignKey(
+    pokemon = models.ForeignKey(
         Pokemon,
         on_delete=models.CASCADE,
         verbose_name='Название покемона'
@@ -65,8 +65,8 @@ class PokemonEntity(models.Model):
         verbose_name="Время исчезновения"
     )
 
-    level = models.IntegerField(default=1, verbose_name="Уровень")
-    health = models.IntegerField(default=5, verbose_name="Здоровье")
-    strength = models.IntegerField(default=5, verbose_name="Атака")
-    defence = models.IntegerField(default=5, verbose_name="Защита")
-    stamina = models.IntegerField(default=5, verbose_name="Выносливость")
+    level = models.IntegerField(verbose_name="Уровень")
+    health = models.IntegerField(verbose_name="Здоровье")
+    strength = models.IntegerField(verbose_name="Атака")
+    defence = models.IntegerField(verbose_name="Защита")
+    stamina = models.IntegerField(verbose_name="Выносливость")

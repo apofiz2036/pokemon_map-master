@@ -33,10 +33,6 @@ def show_all_pokemons(request):
     pokemons = Pokemon.objects.all()
 
     now = timezone.now()
-    pokemon_enties = PokemonEntity.objects.filter(
-        appeared_at__lte=now,
-        disappeared_at__gte=timezone.now()
-    )
 
     folium_map = folium.Map(location=MOSCOW_CENTER, zoom_start=12)
 
@@ -51,13 +47,18 @@ def show_all_pokemons(request):
         except ValueError:
             continue
 
-    for pokemon_entity in pokemon_enties:
+    pokemon_entities = PokemonEntity.objects.filter(
+        appeared_at__lte=now,
+        disappeared_at__gte=now
+    )
+
+    for pokemon_entity in pokemon_entities:
         try:
             add_pokemon(
                 folium_map,
                 pokemon_entity.lat,
                 pokemon_entity.lon,
-                request.build_absolute_uri(pokemon_entity.name_ru.image.url)
+                request.build_absolute_uri(pokemon_entity.pokemon.image.url)
             )
         except ValueError:
             continue
@@ -71,7 +72,7 @@ def show_all_pokemons(request):
 def show_pokemon(request, pokemon_id):
     pokemon = get_object_or_404(Pokemon, id=pokemon_id)
 
-    pokemon_entities = PokemonEntity.objects.filter(name_ru=pokemon)
+    pokemon_entities = PokemonEntity.objects.filter(pokemon=pokemon)
     folium_map = folium.Map(location=MOSCOW_CENTER, zoom_start=12)
 
     for pokemon_entity in pokemon_entities:
@@ -82,8 +83,9 @@ def show_pokemon(request, pokemon_id):
             request.build_absolute_uri(pokemon.image.url)
         )
 
-    previous_evolutions = pokemon.prev_evolution.next_evolutions.all().order_by('-id') if pokemon.prev_evolution else []
-    next_evolutions = pokemon.next_evolutions.all().order_by('id') if pokemon else []
+    previous_evolutions = pokemon.prev_evolution
+    # next_evolutions = pokemon.next_evolutions.all().order_by('id')
+    next_evolutions = pokemon.next_evolutions.first()
 
     previous_evolution = None
     if previous_evolutions:
@@ -96,9 +98,9 @@ def show_pokemon(request, pokemon_id):
     next_evolution = None
     if next_evolutions:
         next_evolution = {
-            'name_ru': next_evolutions.first().name_ru,
-            'pokemon_id': next_evolutions.first().id,
-            'img_url': request.build_absolute_uri(next_evolutions.first().image.url)
+            'name_ru': next_evolutions.name_ru,
+            'pokemon_id': next_evolutions.id,
+            'img_url': request.build_absolute_uri(next_evolutions.image.url)
         }
 
     pokemon_info = {
